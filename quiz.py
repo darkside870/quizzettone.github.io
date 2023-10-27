@@ -1,38 +1,63 @@
-from flask import Flask, render_template, request
+import tkinter as tk
+from tkinter import messagebox
 
-app = Flask(__name__)
+class Quiz:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Quiz")
+        
+        self.questions = [
+            {
+                "question": "Qual è la capitale dell'Italia?",
+                "options": ["Roma", "Milano", "Firenze", "Napoli"],
+                "answer": "Roma"
+            },
+            {
+                "question": "Quale è il fiume più lungo del mondo?",
+                "options": ["Nilo", "Amazzonia", "Mississippi", "Gange"],
+                "answer": "Nilo"
+            },
+            {
+                "question": "Quale è il simbolo chimico dell'oro?",
+                "options": ["Au", "Ag", "Fe", "Cu"],
+                "answer": "Au"
+            }
+        ]
+        
+        self.current_question = 0
+        self.score = 0
+        
+        self.question_label = tk.Label(root, text="")
+        self.question_label.pack()
+        
+        self.option_buttons = []
+        for i in range(4):
+            button = tk.Button(root, text="", command=lambda i=i: self.check_answer(i))
+            button.pack(fill=tk.BOTH, padx=10, pady=5)
+            self.option_buttons.append(button)
+        
+        self.next_question()
+    
+    def next_question(self):
+        if self.current_question < len(self.questions):
+            question = self.questions[self.current_question]
+            self.question_label.config(text=question["question"])
+            
+            for i in range(4):
+                self.option_buttons[i].config(text=question["options"][i])
+            
+            self.current_question += 1
+        else:
+            messagebox.showinfo("Quiz completato", f"Hai totalizzato {self.score} punti!")
+            self.root.destroy()
+    
+    def check_answer(self, selected_option):
+        question = self.questions[self.current_question - 1]
+        if question["options"][selected_option] == question["answer"]:
+            self.score += 1
+        
+        self.next_question()
 
-# Lista delle domande e risposte
-questions = [
-    {
-        'question': 'Qual è la capitale dell'Italia?',
-        'options': ['Roma', 'Milano', 'Firenze', 'Napoli'],
-        'correct_answer': 'Roma'
-    },
-    {
-        'question': 'Quale è il fiume più lungo del mondo?',
-        'options': ['Nilo', 'Amazzoni', 'Mississippi', 'Danubio'],
-        'correct_answer': 'Nilo'
-    },
-    {
-        'question': 'Quale è il simbolo chimico dell\'oro?',
-        'options': ['Au', 'Ag', 'Fe', 'Cu'],
-        'correct_answer': 'Au'
-    }
-]
-
-@app.route('/')
-def index():
-    return render_template('quiz.html', questions=questions)
-
-@app.route('/submit', methods=['POST'])
-def submit():
-    score = 0
-    for question in questions:
-        user_answer = request.form.get(question['question'])
-        if user_answer == question['correct_answer']:
-            score += 1
-    return render_template('result.html', score=score)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+root = tk.Tk()
+quiz = Quiz(root)
+root.mainloop()
